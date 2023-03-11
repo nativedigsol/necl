@@ -17,4 +17,5 @@ type Attribute struct {
 	Name  string
 	Type  string
 	Value interface{}
+	Array []interface{}
 }
