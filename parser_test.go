@@ -1,4 +1,4 @@
-package nml
+package necl
 
 import (
 	"testing"
@@ -6,8 +6,8 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestNMLFileParser(t *testing.T) {
-	file := ParseNMLFile("./test_data/example-1-simple-file.nml")
+func TestNECLFileParser(t *testing.T) {
+	file := ParseNECLFile("./test_data/example-1-simple-file.necl")
 
 	// Assert no-block attributes
 	assert.EqualValues(t, file.Attributes["name"].Value, "example")

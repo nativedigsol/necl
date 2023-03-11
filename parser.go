@@ -1,4 +1,4 @@
-package nml
+package necl
 
 import (
 	"bufio"
@@ -8,8 +8,8 @@ import (
 	"strings"
 )
 
-// ParseNMLFile will read and parse a ".nml" file
-func ParseNMLFile(filename string) *File {
+// ParseNECLFile will read and parse a ".necl" file
+func ParseNECLFile(filename string) *File {
 	// Read file
 	rawText := readFile(filename)
 
@@ -216,7 +216,7 @@ func findAttributes(data []string) (map[string]Attribute, error) {
 	return attributes, nil
 }
 
-// Discover the type of an attribute based on the NML spec
+// Discover the type of an attribute based on the NECL spec
 func discoverAttributeType(value string) (string, error) {
 	for _, cRune := range value {
 		// Transform rune to string

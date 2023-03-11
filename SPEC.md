@@ -1,6 +1,6 @@
-# NML Syntax Specification
+# NECL Syntax Specification
 
-This is the specification of the syntax and semantics of NML.
+This is the specification of the syntax and semantics of NECL.
 
 ## Syntax Notation
 
@@ -48,7 +48,7 @@ block {
 
 ## Data Types
 
-NML supports the common data types:
+NECL supports the common data types:
 
 - Number (assigned integers and floats): `number = 3.14` or `number = -10`
 - String (a collection of characters): `string = "Hello World!`
@@ -97,7 +97,7 @@ a - b   // difference
 a * b   // product
 a / b   // quotient
 
-// Note that NML does not support the remainder, exponentiation and floor division operators
+// Note that NECL does not support the remainder, exponentiation and floor division operators
 ```
 
 #### Comparison operators
@@ -133,7 +133,7 @@ xnor = !xor // false
 
 ### Functions
 
-The following functions come by default with the NML interpreter:
+The following functions come by default with the NECL interpreter:
 
 #### Strings
 

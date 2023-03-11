@@ -1,4 +1,4 @@
-package nml
+package necl
 
 func Check(e error) {
 	if e != nil {

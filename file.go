@@ -1,4 +1,4 @@
-package nml
+package necl
 
 type File struct {
 	Attributes map[string]Attribute

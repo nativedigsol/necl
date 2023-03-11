@@ -1,4 +1,4 @@
-module nml
+module necl
 
 go 1.19
 

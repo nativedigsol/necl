@@ -1,10 +1,10 @@
-# Native Markup Language
+# Native's Effortless Configuration Language
 
-NML is a simple, human-friendly, structured configuration language.
+NECL is a simple, human-friendly, structured configuration language.
 
-The syntax for NML is inspired by [JSON](https://www.json.org), [Groovy](https://groovy-lang.org/), [NGINX configuration](http://nginx.org/en/docs/beginners_guide.html#conf_structure), and others.
+The syntax for NECL is inspired by [JSON](https://www.json.org), [Groovy](https://groovy-lang.org/), [NGINX configuration](http://nginx.org/en/docs/beginners_guide.html#conf_structure), and others.
 
-NML uses a key-value structure along with hierarchy for better readability.
+NECL uses a key-value structure along with hierarchy for better readability.
 
 ## Motivations
 
@@ -12,9 +12,9 @@ Why not use something already used, such as YAML, JSON, etc.?
 
 We find that most configuration languages have some downsides that are quite annoying if you’re using it for complex applications. There’s quite a gap between programming languages and markup languages. For example, in a programming language, to declare a variable you can simply go `x = “hello”` (with obvious variations from language to language), but JSON requires all definitions to be inside brackets: `“foo”: “bar”`. Although that is very good for interoperability, it’s annoying if you’re using it to create a configuration file. Another great example is YAML. YAML files can get quite confusing if you need to create a large one, one can easily get lost in the indentation of the file, that is far more annoying that JSON’s brackets.
 
-NML attempts to be a bridge between markup / configuration files, and programming languages. It has a syntax similar to what most programming languages look like, but with all the requirements for a markup language. It is made to be easily written and read.
+NECL attempts to be a bridge between markup / configuration files, and programming languages. It has a syntax similar to what most programming languages look like, but with all the requirements for a markup language. It is made to be easily written and read.
 
-NML is build around key-value pairs and a well-defined hierarchy that allows for better readability.
+NECL is build around key-value pairs and a well-defined hierarchy that allows for better readability.
 
 ## Syntax
 
@@ -50,7 +50,7 @@ Let’s take the following JSON configuration file for a generic application:
 }
 ```
 
-The NML equivalent of this configuration is the following:
+The NECL equivalent of this configuration is the following:
 
 ```
 name = "example"
@@ -113,7 +113,7 @@ spec:
         - containerPort: 80
 ```
 
-Has the following NML equivalent:
+Has the following NECL equivalent:
 
 ```
 apiVersion = "apps/v1"
@@ -172,9 +172,9 @@ spec {
 }
 ```
 
-As you can see, NML can be used in many ways, with better readability and usage.
+As you can see, NECL can be used in many ways, with better readability and usage.
 
-NML also supports expressions:
+NECL also supports expressions:
 
 ```
 // String interpolations
