@@ -42,7 +42,7 @@ func discoverAttributeType(value string) (string, error) {
 	}
 
 	// No valid type was found
-	err = errors.New("no valid type was found")
+	err = fmt.Errorf("no valid type was found for attribute %s", value)
 	return "", err
 }
 
