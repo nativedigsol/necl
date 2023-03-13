@@ -6,8 +6,8 @@ import (
 	"strings"
 )
 
-// Transforms a string into an interface
-func parseStringToInterface(value string, attributes map[string]Attribute) (string, interface{}, error) {
+// Transforms a string into an interface for the IfExpression function
+func parseStringToInterfaceIfExpression(value string, attributes map[string]Attribute) (string, interface{}, error) {
 	// Attribute
 	if attributes[value].Value != nil {
 		return attributes[value].Type, attributes[value].Value, nil
@@ -67,7 +67,7 @@ func parseStringToInterface(value string, attributes map[string]Attribute) (stri
 }
 
 // ifExpression will calculate the value of an attribute with an "if" expression
-func ifExpression(line string, attributes map[string]Attribute) (string, interface{}, error) {
+func IfExpression(line string, attributes map[string]Attribute) (string, interface{}, error) {
 	// Get outcome indexes
 	positiveOutcomeIndex := 0
 	negativeOutcomeIndex := 0
@@ -95,11 +95,11 @@ func ifExpression(line string, attributes map[string]Attribute) (string, interfa
 	negativeOutcome := strings.TrimSpace(line[negativeOutcomeIndex+1:])
 
 	// Parse outcomes
-	positiveType, positiveValue, err := parseStringToInterface(positiveOutcome, attributes)
+	positiveType, positiveValue, err := parseStringToInterfaceIfExpression(positiveOutcome, attributes)
 	if err != nil {
 		return "", nil, err
 	}
-	negativeType, negativeValue, err := parseStringToInterface(negativeOutcome, attributes)
+	negativeType, negativeValue, err := parseStringToInterfaceIfExpression(negativeOutcome, attributes)
 	if err != nil {
 		return "", nil, err
 	}
@@ -107,7 +107,7 @@ func ifExpression(line string, attributes map[string]Attribute) (string, interfa
 	// Get condition
 	lineNoOutcomes := line[:positiveOutcomeIndex-1]
 	conditionRaw := strings.TrimSpace(strings.TrimPrefix(lineNoOutcomes, "if"))
-	conditionType, condition, err := parseStringToInterface(conditionRaw, attributes)
+	conditionType, condition, err := parseStringToInterfaceIfExpression(conditionRaw, attributes)
 	if err != nil {
 		return "", nil, err
 	}
@@ -164,16 +164,141 @@ func ifExpression(line string, attributes map[string]Attribute) (string, interfa
 	return resultType, resultValue, nil
 }
 
-// ParseExpression is a super set for all expressions
-func ParseExpression(line string, attributes map[string]Attribute) (string, interface{}, error) {
-	if strings.Contains(line, "if") {
-		resultType, resultValue, err := ifExpression(line, attributes)
-		if err != nil {
-			return "", nil, err
-		}
-		return resultType, resultValue, nil
+// Transforms a string into an interface for the ForExpression function
+func parseStringToInterfaceForExpression(value string, attributes map[string]Attribute) (string, error) {
+	// Comparison (will transform into a boolean by the end)
+	if ContainsMany(value, []string{"==", "!=", "<", "<=", ">", ">="}) {
+		return "comparison", nil
 	}
 
-	err := fmt.Errorf("unknown condition on line: %s", line)
-	return "", nil, err
+	// Arithmetic operation
+	if ContainsMany(value, []string{"+", "-", "*", "/"}) {
+		return "arithmetic", nil
+	}
+
+	// String functions
+	if ContainsMany(value, []string{"upper(", "lower(", "concat(", "contains(", "length("}) {
+		return "func-string", nil
+	}
+
+	// Mathematical functions
+	if ContainsMany(value, []string{"power(", "floor(", "remainder("}) {
+		return "func-math", nil
+	}
+
+	// Logical functions
+	if ContainsMany(value, []string{"and(", "or(", "nand(", "nor(", "xor(", "xnor("}) {
+		return "func-logic", nil
+	}
+
+	// Attribute
+	if (attributes[value].Value != nil) || ContainsMany(value, []string{"index", "value"}) {
+		return "attribute", nil
+	}
+
+	// Unknown type
+	err := fmt.Errorf("unknown type for %s", value)
+	return "unknown", err
+}
+
+// forExpression will create a collection by projecting the items from another collection into it
+func ForExpression(line string, attributes map[string]Attribute) ([]interface{}, error) {
+	// Get outcome index
+	outcomeIndex := 0
+	for i := len(line) - 1; i >= 0; i-- {
+		if string(line[i]) == ":" && outcomeIndex == 0 {
+			outcomeIndex = i
+		}
+	}
+
+	if outcomeIndex == 0 {
+		err := fmt.Errorf("missing outcome in line %s", line)
+		return nil, err
+	}
+
+	// Get outcome
+	outcome := strings.TrimSpace(line[outcomeIndex+1:])
+
+	// Parse outcome
+	outcomeType, err := parseStringToInterfaceForExpression(outcome, attributes)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get condition
+	lineNoOutcome := line[:outcomeIndex-1]
+	conditionRaw := strings.TrimSpace(strings.TrimPrefix(lineNoOutcome, "for"))
+
+	// Check if the condition is an array or an attribute (must be array type)
+	conditionArray := attributes[conditionRaw].Array
+	if conditionArray == nil {
+		if strings.HasPrefix(conditionRaw, `[`) && strings.HasSuffix(conditionRaw, `]`) {
+			// Parse array
+			conditionArray, err = parseArrayAttributes(conditionRaw, attributes)
+			if err != nil {
+				return nil, err
+			}
+		} else {
+			err := fmt.Errorf("condition to a 'for' expression must be either a call to an array attribute, or a definition of an array: %s", line)
+			return nil, err
+		}
+	}
+
+	// Create the result array
+	resultArray := []interface{}{}
+
+	// Loop through elements of the array with the condition
+	for index, value := range conditionArray {
+		// Update index and value on the map of attributes
+		attributes["index"] = Attribute{
+			Name:  "index",
+			Value: index,
+		}
+		attributes["value"] = Attribute{
+			Name:  "value",
+			Value: value,
+		}
+
+		// Calculate condition
+		var newEntry interface{}
+		switch outcomeType {
+		case "attribute":
+			newEntry = attributes[outcome].Value
+			if newEntry == nil {
+				err := fmt.Errorf("unknown attribute %s for expression %s", outcome, line)
+				return nil, err
+			}
+		case "comparison":
+			newEntry, err = PerformComparison(outcome, attributes)
+			if err != nil {
+				return nil, err
+			}
+		case "arithmetic":
+			newEntry, err = PerformArithmeticOperation(outcome, attributes)
+			if err != nil {
+				return nil, err
+			}
+		case "func-string":
+			_, newEntry, err = StringFunctions(outcome, attributes)
+			if err != nil {
+				return nil, err
+			}
+		case "func-math":
+			newEntry, err = MathFunctions(outcome, attributes)
+			if err != nil {
+				return nil, err
+			}
+		case "func-logic":
+			newEntry, err = LogicFunctions(outcome, attributes)
+			if err != nil {
+				return nil, err
+			}
+		default:
+			err := fmt.Errorf("unknown attribute type %s for expression %s", outcome, line)
+			return nil, err
+		}
+		resultArray = append(resultArray, newEntry)
+	}
+
+	return resultArray, nil
 }

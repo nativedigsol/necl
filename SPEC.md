@@ -87,13 +87,11 @@ has_hi = if contains(msg, "hi") ? true : false // False
 
 ### For
 
-A "for loop" is a construct for constructing a collection by projecting the items from another collection.
-
-Note that if using a "for loop" with an array, 2 variables need to be declared: the index and the value. `... for index, value in array ...`
+A "for loop" is a construct for constructing a collection by projecting the items from another collection. 2 variables are automatically declared in a for loop: the index and the value, you can use both to call functions, expressions, etc.
 
 ```
 months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
-monthNumber = for i, month in months : i + 1
+monthNumber = for months : index + 1
 // monthNumber = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12]
 ```
 
@@ -150,7 +148,7 @@ The following functions come by default with the NECL interpreter:
 - lower(str) // Lowercases a string
 - concat(str, val) // Adds a string to the end of another string
 - contains(str, substr) // Checks if a string contains a substring
-- len(str) // Checks the length of the string
+- length(str) // Checks the length of the string
 
 #### Numeric
 

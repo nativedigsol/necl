@@ -25,3 +25,21 @@ textIfGateNAND = if nand(b2, true) ? "true" : "false"
 textIfGateNOR = if nor(false, b1) ? "true" : "false"
 textIfGateXOR = if xor(false, false) ? "true" : "false"
 textIfGateXNOR = if xnor(false, false) ? "true" : "false"
+
+
+// For
+baseArray1 = ["test", "base", "array"]
+baseArray2 = [true, false, true, false, true]
+baseArray3 = [1, 2, 3, 4, 5]
+
+arrayFor1 = for baseArray1 : value
+arrayFor2 = for baseArray1 : index
+arrayForComp1 = for baseArray3 : value > 1
+arrayForComp2 = for baseArray3 : index != 0
+arrayForArith1 = for baseArray3 : value + 3
+arrayForArith2 = for baseArray1 : index * 2
+arrayForString1 = for baseArray1 : upper(value)
+arrayForString2 = for baseArray1 : length(value)
+arrayForMath1 = for baseArray3 : power(value, 2)
+arrayForLogic1 = for baseArray2 : and(value, true)
+arrayForLogic2 = for baseArray2 : xor(value, true)

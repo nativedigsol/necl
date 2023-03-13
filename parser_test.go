@@ -96,6 +96,20 @@ func TestConditions(t *testing.T) {
 	assert.EqualValues(t, "true", file.Attributes["textIfGateNOR"].Value)
 	assert.EqualValues(t, "false", file.Attributes["textIfGateXOR"].Value)
 	assert.EqualValues(t, "true", file.Attributes["textIfGateXNOR"].Value)
+
+	// For
+	baseArray1 := []interface{}{"test", "base", "array"}
+	assert.EqualValues(t, baseArray1, file.Attributes["arrayFor1"].Array)
+	assert.EqualValues(t, []interface{}{0, 1, 2}, file.Attributes["arrayFor2"].Array)
+	assert.EqualValues(t, []interface{}{false, true, true, true, true}, file.Attributes["arrayForComp1"].Array)
+	assert.EqualValues(t, []interface{}{false, true, true, true, true}, file.Attributes["arrayForComp2"].Array)
+	assert.EqualValues(t, []interface{}{4, 5, 6, 7, 8}, file.Attributes["arrayForArith1"].Array)
+	assert.EqualValues(t, []interface{}{0, 2, 4}, file.Attributes["arrayForArith2"].Array)
+	assert.EqualValues(t, []interface{}{"TEST", "BASE", "ARRAY"}, file.Attributes["arrayForString1"].Array)
+	assert.EqualValues(t, []interface{}{4, 4, 5}, file.Attributes["arrayForString2"].Array)
+	assert.EqualValues(t, []interface{}{1, 4, 9, 16, 25}, file.Attributes["arrayForMath1"].Array)
+	assert.EqualValues(t, []interface{}{true, false, true, false, true}, file.Attributes["arrayForLogic1"].Array)
+	assert.EqualValues(t, []interface{}{false, true, false, true, false}, file.Attributes["arrayForLogic2"].Array)
 }
 
 func TestK8sNECLFileParser(t *testing.T) {
