@@ -2,6 +2,7 @@ package necl
 
 import (
 	"bufio"
+	"fmt"
 	"os"
 	"strings"
 )
@@ -138,6 +139,18 @@ func findAttributesNoBlock(data []string) (map[string]Attribute, error) {
 
 // This reads a file as an array of bytes
 func readFile(filename string) ([]string, error) {
+	trimmedFilename := filename
+	if strings.HasPrefix(trimmedFilename, `"`) {
+		trimmedFilename = strings.Trim(trimmedFilename, `"`)
+	} else if strings.HasPrefix(trimmedFilename, `'`) {
+		trimmedFilename = strings.Trim(trimmedFilename, `'`)
+	}
+
+	if !strings.HasSuffix(trimmedFilename, ".necl") {
+		err := fmt.Errorf("file %s is not in .necl format", trimmedFilename)
+		return nil, err
+	}
+
 	file, err := os.Open(filename)
 	if err != nil {
 		return nil, err
