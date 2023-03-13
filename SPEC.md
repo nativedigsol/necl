@@ -17,6 +17,8 @@ This notation is intended for human consumption rather than machine consumption,
 
 Comments start with the // sequence and end with the next newline sequence. A line comment is considered equivalent to a newline sequence.
 
+Inline comments are also supported.
+
 ### Operators and Delimiters
 
 The following character sequences represent operators, delimiters, and other special tokens:

@@ -194,12 +194,29 @@ func ParseNECLFile(filename string) (*File, error) {
 		if i > len(rawText) {
 			break
 		}
+		// Line comment
 		if strings.HasPrefix(strings.TrimSpace(line), "//") {
 			if i == len(rawText)-1 {
 				rawText = rawText[:i-1]
 			} else {
 				rawText = append(rawText[:i], rawText[i+1:]...)
 			}
+		} else if strings.Contains(strings.TrimSpace(line), "//") { // Inline comment
+			// Find index of where the comments start
+			firstSlash := 0
+			foundComment := false
+			for j, c := range line {
+				if string(c) == "/" && firstSlash == 0 && !foundComment {
+					firstSlash = j
+				}
+				if j == firstSlash && string(c) != "/" && !foundComment {
+					firstSlash = 0
+				}
+				if string(c) == "/" && firstSlash != 0 && !foundComment {
+					foundComment = true
+				}
+			}
+			rawText[i] = line[:firstSlash-1]
 		}
 	}
 
