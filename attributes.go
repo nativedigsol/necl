@@ -20,11 +20,6 @@ func discoverAttributeType(value string) (string, error) {
 		return "array", nil
 	}
 
-	// Boolean
-	if strings.Contains(strings.ToLower(value), "true") || strings.Contains(strings.ToLower(value), "false") {
-		return "boolean", nil
-	}
-
 	// Comparison (will transform into a boolean by the end)
 	if ContainsMany(value, []string{"==", "!=", "<", "<=", ">", ">="}) {
 		return "comparison", nil
@@ -33,6 +28,27 @@ func discoverAttributeType(value string) (string, error) {
 	// Arithmetic operation
 	if ContainsMany(value, []string{"+", "-", "*", "/"}) {
 		return "arithmetic", nil
+	}
+
+	// Functions
+	// String functions
+	if ContainsMany(value, []string{"upper(", "lower(", "concat(", "contains(", "length("}) {
+		return "func-string", nil
+	}
+
+	// Mathematical functions
+	if ContainsMany(value, []string{"power(", "floor(", "remainder("}) {
+		return "func-math", nil
+	}
+
+	// Logical functions
+	if ContainsMany(value, []string{"and(", "or(", "nand(", "nor(", "xor(", "xnor("}) {
+		return "func-logic", nil
+	}
+
+	// Boolean
+	if strings.Contains(strings.ToLower(value), "true") || strings.Contains(strings.ToLower(value), "false") {
+		return "boolean", nil
 	}
 
 	// Number
@@ -105,6 +121,31 @@ func getAttribute(attributeValueRaw string, isArray bool, currentAttributes map[
 	case "arithmetic":
 		attributeType = "number"
 		attributeValue, err = PerformArithmeticOperation(attributeValueRaw, currentAttributes)
+		if err != nil {
+			return "", nil, nil, err
+		}
+	case "func-string":
+		var functionDone string
+		functionDone, attributeValue, err = StringFunctions(attributeValueRaw)
+		if err != nil {
+			return "", nil, nil, err
+		}
+		if functionDone == "contains" {
+			attributeType = "boolean"
+		} else if functionDone == "length" {
+			attributeType = "number"
+		} else {
+			attributeType = "string"
+		}
+	case "func-math":
+		attributeType = "number"
+		attributeValue, err = MathFunctions(attributeValueRaw)
+		if err != nil {
+			return "", nil, nil, err
+		}
+	case "func-logic":
+		attributeType = "boolean"
+		attributeValue, err = LogicFunctions(attributeValueRaw, currentAttributes)
 		if err != nil {
 			return "", nil, nil, err
 		}
