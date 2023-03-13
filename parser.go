@@ -108,6 +108,16 @@ func findAttributesNoBlock(data []string) (map[string]Attribute, error) {
 			blockStarted = true
 		}
 
+		// Look for the end of a block
+		if strings.Contains(line, "}") && blockStarted {
+			blockStarted = false
+		}
+
+		// Skip looking for attributes if inside a block
+		if blockStarted {
+			continue
+		}
+
 		// If not inside a block, look for attributes
 		found, newAttr, err := findAttribute(data, i)
 		if err != nil {
@@ -120,11 +130,6 @@ func findAttributesNoBlock(data []string) (map[string]Attribute, error) {
 				Value: newAttr.Value,
 				Array: newAttr.Array,
 			}
-		}
-
-		// Look for the end of a block
-		if strings.Contains(line, "}") && blockStarted {
-			blockStarted = false
 		}
 	}
 
