@@ -172,8 +172,22 @@ func getAttribute(attributeValueRaw string, isArray bool, currentAttributes map[
 			}
 		}
 	case "expression":
-		attributeType, attributeValue, err = ParseExpression(attributeValueRaw, currentAttributes)
-		if err != nil {
+		if strings.Contains(attributeValueRaw, "if") {
+			resultType, resultValue, err := IfExpression(attributeValueRaw, currentAttributes)
+			if err != nil {
+				return "", nil, nil, err
+			}
+			attributeType = resultType
+			attributeValue = resultValue
+		} else if strings.Contains(attributeValueRaw, "for") {
+			resultArray, err := ForExpression(attributeValueRaw, currentAttributes)
+			if err != nil {
+				return "", nil, nil, err
+			}
+			attributeType = "array"
+			arrayElements = resultArray
+		} else {
+			err := fmt.Errorf("unknown expression on line: %s", attributeValueRaw)
 			return "", nil, nil, err
 		}
 	default:
