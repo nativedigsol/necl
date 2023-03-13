@@ -112,6 +112,8 @@ arithmetic2 = x + y - x * k // Not valid
 both = x + y == 1 // Not valid
 ```
 
+**Warning: Do not use operators inside multiline arrays**
+
 #### Arithmetic operators
 ```
 a + b   // sum 
