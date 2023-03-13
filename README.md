@@ -57,7 +57,7 @@ name = "example"
 description = "Some description"
 version = "0.0.1"
 main = "index.js"
-// This is a comment
+// This is an actual comment
 keywords = ["example", "config"]
 
 scripts {
@@ -75,14 +75,14 @@ contributors = [
         email = "johndoe@example.com"
     },
     {
-        name = "Ivy Lane",
+        name = "Ivy Lane"
         url = "https://example.com/ivylane"
     }
 ]
 
 dependencies {
-    dep1 = "^1.0.0",
-    dep2 = "3.40",
+    dep1 = "^1.0.0"
+    dep2 = "3.40"
     dep3 = "6.7"
 }
 ```
@@ -123,13 +123,6 @@ metadata {
     labels {
         app = "nginx"
     }
-    // These labels section can also be written as:
-    // labels = [
-    //     {
-    //         app = "nginx"
-    //     }
-    // ]
-    // It's up to you to choose what's prettier
 }
 spec {
     replicas = 3
@@ -137,35 +130,21 @@ spec {
         matchLabels {
             app = "nginx"
         }
-        // This matchLabels section can also be written as the "labels" one.
     }
     template {
         metadata {
             labels {
                 app = "nginx"
             }
-            // These labels section can also be written as the one above... You got the point
         }
         spec {
             containers {
-                // These containers step can be written as 2 types:
                 nginx {
                     image = "nginx:1.14.2"
                     ports {
                         containerPort = 80
                     }
                 }
-                // Or:
-                {
-                    name = "nginx"
-                    image = "nginx:1.14.2"
-                    ports {
-                        containerPort = 80
-                    }
-                }
-                // It will only depend on how you choose to interpret it on your application
-                // The first example will be accessed as "spec.containers.nginx", 
-                // whereas the second one will accessed as "spec.containers.name["nginx"]"
             }
         }
     }
@@ -199,4 +178,5 @@ For more information, check the [syntax spec document](SPEC.md)
 
 - [Why JSON isn’t a Good Configuration Language](https://www.lucidchart.com/techblog/2018/07/16/why-json-isnt-a-good-configuration-language/)
 - [Don’t Use JSON as a Configuration File Format. (Unless Absolutely You Have To…)](https://revelry.co/insights/development/json-configuration-file-format/)
+- [Why YAML is used for configuration when it's so bad and what can you do about it?](https://kula.blog/posts/yaml/)
 - [The state of config file formats: XML vs. YAML vs. JSON vs. HCL](https://octopus.com/blog/state-of-config-file-formats)
