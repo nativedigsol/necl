@@ -7,7 +7,7 @@ import (
 )
 
 // findBlock looks for a block by searching for the beggining '{' and the closing '}'
-func findBlock(data []string, startLine int) (Block, int, []int, int, []int) {
+func findBlock(data []string, startLine int) (Block, int, []int, int, []int, error) {
 	var start int
 	var end int
 
@@ -35,7 +35,10 @@ func findBlock(data []string, startLine int) (Block, int, []int, int, []int) {
 				if !nested {
 					// This is not the prettiest of stuff and it could definitely see an improvement
 					// but for now, it works
-					newNestedBlock, start, starts, end, ends := findBlock(data, i)
+					newNestedBlock, start, starts, end, ends, err := findBlock(data, i)
+					if err != nil {
+						return Block{}, 0, nil, 0, nil, err
+					}
 					nestedBlockStarts = append(nestedBlockStarts, start)
 					nestedBlockStarts = append(nestedBlockStarts, starts...)
 					nestedBlockEnds = append(nestedBlockEnds, end)
@@ -74,18 +77,20 @@ func findBlock(data []string, startLine int) (Block, int, []int, int, []int) {
 
 		// Get block attributes (if any)
 		blockAttributes, err := findAttributes(data[start:end])
-		Check(err)
+		if err != nil {
+			return Block{}, 0, nil, 0, nil, err
+		}
 
 		// Knowing where the block starts and ends, a Block struct can be created
 		return Block{
 			Name:       blockName,
 			Attributes: blockAttributes,
 			Blocks:     nestedBlocks,
-		}, start, nestedBlockStarts, end, nestedBlockEnds
+		}, start, nestedBlockStarts, end, nestedBlockEnds, nil
 	}
 
 	// No block was found
-	return Block{}, 0, []int{}, 0, []int{}
+	return Block{}, 0, nil, 0, nil, nil
 }
 
 // findAttributesNoBlock looks for attributes that are outside blocks
@@ -105,7 +110,9 @@ func findAttributesNoBlock(data []string) (map[string]Attribute, error) {
 
 		// If not inside a block, look for attributes
 		found, newAttr, err := findAttribute(data, i)
-		Check(err)
+		if err != nil {
+			return nil, err
+		}
 		if found && (newAttr.Name != "") {
 			attributes[newAttr.Name] = Attribute{
 				Name:  newAttr.Name,
@@ -125,9 +132,11 @@ func findAttributesNoBlock(data []string) (map[string]Attribute, error) {
 }
 
 // This reads a file as an array of bytes
-func readFile(filename string) []string {
+func readFile(filename string) ([]string, error) {
 	file, err := os.Open(filename)
-	Check(err)
+	if err != nil {
+		return nil, err
+	}
 
 	defer file.Close()
 
@@ -137,19 +146,22 @@ func readFile(filename string) []string {
 
 	for scanner.Scan() {
 		_, token, err := bufio.ScanLines(scanner.Bytes(), true)
-		Check(err)
+		CheckErr(err)
 		rawData = append(rawData, string(token))
 	}
 	err = scanner.Err()
-	Check(err)
+	CheckErr(err)
 
-	return rawData
+	return rawData, nil
 }
 
 // ParseNECLFile will read and parse a ".necl" file
-func ParseNECLFile(filename string) *File {
+func ParseNECLFile(filename string) (*File, error) {
 	// Read file
-	rawText := readFile(filename)
+	rawText, err := readFile(filename)
+	if err != nil {
+		return nil, err
+	}
 
 	// Remove all comments from the text
 	for i, line := range rawText {
@@ -173,7 +185,11 @@ func ParseNECLFile(filename string) *File {
 	blocks := make(map[string]Block)
 	startLine := 0
 	for startLine < len(rawText) {
-		newBlock, _, _, endLine, _ := findBlock(rawText, startLine)
+		newBlock, _, _, endLine, _, err := findBlock(rawText, startLine)
+		if err != nil {
+			return nil, err
+		}
+
 		if newBlock.Name != "" {
 			// Add new block to the array of blocks
 			blocks[newBlock.Name] = newBlock
@@ -188,10 +204,10 @@ func ParseNECLFile(filename string) *File {
 
 	// Find attributes that are not inside blocks
 	attributes, err := findAttributesNoBlock(rawText)
-	Check(err)
+	CheckErr(err)
 
 	return &File{
 		Attributes: attributes,
 		Blocks:     blocks,
-	}
+	}, nil
 }

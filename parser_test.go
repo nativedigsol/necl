@@ -7,7 +7,8 @@ import (
 )
 
 func TestBasicNECLFileParser(t *testing.T) {
-	file := ParseNECLFile("./test_data/example-1-simple-file.necl")
+	file, err := ParseNECLFile("./test_data/example-1-simple-file.necl")
+	assert.NoError(t, err)
 
 	// Assert no-block attributes
 	assert.EqualValues(t, "example", file.Attributes["name"].Value)
@@ -27,7 +28,8 @@ func TestBasicNECLFileParser(t *testing.T) {
 }
 
 func TestK8sNECLFileParser(t *testing.T) {
-	file := ParseNECLFile("./test_data/example-2-kubernetes-deployment.necl")
+	file, err := ParseNECLFile("./test_data/example-2-kubernetes-deployment.necl")
+	assert.NoError(t, err)
 
 	// Global attributes
 	assert.EqualValues(t, "apps/v1", file.Attributes["apiVersion"].Value)

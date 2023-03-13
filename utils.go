@@ -1,6 +1,6 @@
 package necl
 
-func Check(e error) {
+func CheckErr(e error) {
 	if e != nil {
 		panic(e)
 	}

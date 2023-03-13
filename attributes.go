@@ -71,7 +71,9 @@ func getAttribute(attributeValueRaw string, isArray bool) (string, interface{}, 
 	var arrayElements []interface{}
 
 	attributeType, err := discoverAttributeType(attributeValueRaw)
-	Check(err)
+	if err != nil {
+		return "", nil, nil, err
+	}
 
 	switch attributeType {
 	case "string":
@@ -91,7 +93,9 @@ func getAttribute(attributeValueRaw string, isArray bool) (string, interface{}, 
 		} else {
 			var err error
 			arrayElements, err = parseArrayAttributes(attributeValueRaw)
-			Check(err)
+			if err != nil {
+				return "", nil, nil, err
+			}
 		}
 	default:
 		err := fmt.Errorf("unknown attribute type: %s", attributeType)
@@ -133,7 +137,9 @@ func parseArrayAttributes(array string) ([]interface{}, error) {
 	var arrayElements []interface{}
 	for _, item := range arrayElementsRaw {
 		_, attributeValue, _, err := getAttribute(item, true)
-		Check(err)
+		if err != nil {
+			return nil, err
+		}
 
 		arrayElements = append(arrayElements, attributeValue)
 	}
@@ -183,7 +189,9 @@ func findAttribute(data []string, line int) (bool, Attribute, error) {
 	} else {
 		var err error
 		attributeType, attributeValue, arrayValues, err = getAttribute(rawAttribute, false)
-		Check(err)
+		if err != nil {
+			return false, Attribute{}, err
+		}
 	}
 
 	return true, Attribute{
@@ -200,7 +208,9 @@ func findAttributes(data []string) (map[string]Attribute, error) {
 
 	for i := range data {
 		found, newAttr, err := findAttribute(data, i)
-		Check(err)
+		if err != nil {
+			return nil, err
+		}
 
 		if found && (newAttr.Name != "") {
 			attributes[newAttr.Name] = Attribute{
