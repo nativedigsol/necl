@@ -5,6 +5,16 @@ test_array = ["test", 1]
 empty_array = []
 long_array = ["a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, true, false]
 
+v1 = 1
+c1 = v1 == 1
+c2 = 1 != v1
+c3 = v1 > 1
+c4 = 1 >= v1
+c5 = v1 < 1
+c6 = 1 <= v1
+
+comp_array = ["this", "array", "can", "compare", "stuff", v1 >= 0]
+
 multiline = "this" \
       "is" \
       "a" \
@@ -23,6 +33,7 @@ multiArray = ["this",
 
 block {
     foo = "bar"
+    cb1 = 1 == 2
     block_array = ["test", "block", "array", 1234, false]
     block_multiline = "this" \
                       "is" \

@@ -105,11 +105,15 @@ a + b   // sum
 a - b   // difference
 a * b   // product
 a / b   // quotient
-
-// Note that NECL does not support the remainder, exponentiation and floor division operators
 ```
 
-#### Comparison operators
+Note 1: NECL does not support the remainder, exponentiation and floor division operators. These are offered via functions
+Note 2: These operations can only be done to integers. If you try to do this operation with float values, it will return an error when parsing
+
+#### Comparative operators
+
+Note that these can only be applied to integers
+
 ```
 a == b    // Equal
 a != b    // Not equal

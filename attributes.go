@@ -25,6 +25,11 @@ func discoverAttributeType(value string) (string, error) {
 		return "boolean", nil
 	}
 
+	// Comparison (will transform into a boolean by the end)
+	if ContainsMany(value, []string{"==", "!=", "<", "<=", ">", ">="}) {
+		return "comparison", nil
+	}
+
 	// Number
 	_, err := strconv.ParseFloat(value, 32)
 	if err == nil {
@@ -66,7 +71,7 @@ func getMultilineString(data []string, startLine int) interface{} {
 }
 
 // getAttribute transforms a string in a interface{} with the correct type
-func getAttribute(attributeValueRaw string, isArray bool) (string, interface{}, []interface{}, error) {
+func getAttribute(attributeValueRaw string, isArray bool, currentAttributes map[string]Attribute) (string, interface{}, []interface{}, error) {
 	var attributeValue interface{}
 	var arrayElements []interface{}
 
@@ -86,13 +91,19 @@ func getAttribute(attributeValueRaw string, isArray bool) (string, interface{}, 
 		}
 	case "boolean":
 		attributeValue, _ = strconv.ParseBool(attributeValueRaw)
+	case "comparison":
+		attributeType = "boolean"
+		attributeValue, err = performComparison(attributeValueRaw, currentAttributes)
+		if err != nil {
+			return "", nil, nil, err
+		}
 	case "array":
 		if isArray {
 			err := errors.New("an attribute with array type can't have nested arrays")
 			return "", nil, nil, err
 		} else {
 			var err error
-			arrayElements, err = parseArrayAttributes(attributeValueRaw)
+			arrayElements, err = parseArrayAttributes(attributeValueRaw, currentAttributes)
 			if err != nil {
 				return "", nil, nil, err
 			}
@@ -106,7 +117,7 @@ func getAttribute(attributeValueRaw string, isArray bool) (string, interface{}, 
 }
 
 // parseArrayAttributes parse all attributes in an array
-func parseArrayAttributes(array string) ([]interface{}, error) {
+func parseArrayAttributes(array string, currentAttributes map[string]Attribute) ([]interface{}, error) {
 	// Remove array "[]"
 	// The "if" is there so it doesn't remove actual values of a multiline array
 	arrayRaw := array
@@ -140,7 +151,7 @@ func parseArrayAttributes(array string) ([]interface{}, error) {
 	// Discover types of all elements
 	var arrayElements []interface{}
 	for _, item := range arrayElementsRaw {
-		_, attributeValue, _, err := getAttribute(item, true)
+		_, attributeValue, _, err := getAttribute(item, true, currentAttributes)
 		if err != nil {
 			return nil, err
 		}
@@ -171,7 +182,7 @@ func isMultilineArray(data []string, startLine int) bool {
 }
 
 // getMultilineArray parse all attributes in an multiline array
-func getMultilineArray(data []string, startLine int) ([]interface{}, error) {
+func getMultilineArray(data []string, startLine int, currentAttributes map[string]Attribute) ([]interface{}, error) {
 	// Loop through data to find the end of the array and all the elements
 	arrayElementsRaw := []string{}
 	endOfArray := false
@@ -196,7 +207,7 @@ func getMultilineArray(data []string, startLine int) ([]interface{}, error) {
 	stringElements := strings.Join(arrayElementsRaw, " ")
 
 	// Parse elements of the array
-	arrayElements, err := parseArrayAttributes(stringElements)
+	arrayElements, err := parseArrayAttributes(stringElements, currentAttributes)
 	if err != nil {
 		return nil, err
 	}
@@ -205,7 +216,7 @@ func getMultilineArray(data []string, startLine int) ([]interface{}, error) {
 }
 
 // findAttribute looks for an attribute in a single line
-func findAttribute(data []string, line int) (bool, Attribute, error) {
+func findAttribute(data []string, line int, currentAttributes map[string]Attribute) (bool, Attribute, error) {
 	// Look for '='
 	if !strings.Contains(data[line], "=") {
 		return false, Attribute{}, nil
@@ -240,12 +251,12 @@ func findAttribute(data []string, line int) (bool, Attribute, error) {
 		attributeValue = getMultilineString(data, line)
 		attributeType = "string"
 	} else if isMultilineArray(data, line) { // Multiline array
-		arrayValues, err = getMultilineArray(data, line)
+		arrayValues, err = getMultilineArray(data, line, currentAttributes)
 		if err != nil {
 			return false, Attribute{}, err
 		}
 	} else {
-		attributeType, attributeValue, arrayValues, err = getAttribute(rawAttribute, false)
+		attributeType, attributeValue, arrayValues, err = getAttribute(rawAttribute, false, currentAttributes)
 		if err != nil {
 			return false, Attribute{}, err
 		}
@@ -264,7 +275,7 @@ func findAttributes(data []string) (map[string]Attribute, error) {
 	attributes := make(map[string]Attribute)
 
 	for i := range data {
-		found, newAttr, err := findAttribute(data, i)
+		found, newAttr, err := findAttribute(data, i, attributes)
 		if err != nil {
 			return nil, err
 		}

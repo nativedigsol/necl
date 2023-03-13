@@ -119,7 +119,7 @@ func findAttributesNoBlock(data []string) (map[string]Attribute, error) {
 		}
 
 		// If not inside a block, look for attributes
-		found, newAttr, err := findAttribute(data, i)
+		found, newAttr, err := findAttribute(data, i, attributes)
 		if err != nil {
 			return nil, err
 		}
@@ -151,11 +151,15 @@ func readFile(filename string) ([]string, error) {
 
 	for scanner.Scan() {
 		_, token, err := bufio.ScanLines(scanner.Bytes(), true)
-		CheckErr(err)
+		if err != nil {
+			return nil, err
+		}
 		rawData = append(rawData, string(token))
 	}
 	err = scanner.Err()
-	CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	return rawData, nil
 }
@@ -209,7 +213,9 @@ func ParseNECLFile(filename string) (*File, error) {
 
 	// Find attributes that are not inside blocks
 	attributes, err := findAttributesNoBlock(rawText)
-	CheckErr(err)
+	if err != nil {
+		return nil, err
+	}
 
 	return &File{
 		Attributes: attributes,

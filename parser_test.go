@@ -16,8 +16,19 @@ func TestBasicNECLFileParser(t *testing.T) {
 	assert.EqualValues(t, false, file.Attributes["no"].Value)
 	assert.EqualValues(t, "this is a multiline string", file.Attributes["multiline"].Value)
 
+	// Assert comparison operators
+	compArray := []interface{}{"this", "array", "can", "compare", "stuff", true}
+	assert.EqualValues(t, true, file.Attributes["c1"].Value)
+	assert.EqualValues(t, false, file.Attributes["c2"].Value)
+	assert.EqualValues(t, false, file.Attributes["c3"].Value)
+	assert.EqualValues(t, true, file.Attributes["c4"].Value)
+	assert.EqualValues(t, false, file.Attributes["c5"].Value)
+	assert.EqualValues(t, true, file.Attributes["c6"].Value)
+	assert.EqualValues(t, compArray, file.Attributes["comp_array"].Array)
+
 	// Assert block attributes
-	assert.EqualValues(t, file.Blocks["block"].Attributes["foo"].Value, "bar")
+	assert.EqualValues(t, "bar", file.Blocks["block"].Attributes["foo"].Value)
+	assert.EqualValues(t, false, file.Blocks["block"].Attributes["cb1"].Value)
 
 	// Assert array values
 	longArray := []interface{}{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, true, false}
