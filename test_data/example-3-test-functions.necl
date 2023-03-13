@@ -1,0 +1,20 @@
+// Strings
+testStringUpper = upper("uppercase this string")
+testStringLower = lower("LOWERCASE THIS STRING")
+testStringConcat = concat("string1", "string2")
+testStringContains = contains("this is a string", "is")
+testStringLength = length("a string with length 23")
+
+// Math
+testMathPower = power(5, 2)
+testMathFloor = floor(100, 12)
+testMathRemainder = remainder(69, 7)
+
+// Logic gates
+t1 = true
+testLogicAND = and(t1, true)
+testLogicOR = or(t1, true)
+testLogicNAND = nand(false, t1)
+testLogicNOR = nor(false, t1)
+testLogicXOR = xor(true, true)
+testLogicXNOR = xnor(true, true)

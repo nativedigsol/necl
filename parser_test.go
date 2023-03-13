@@ -50,6 +50,31 @@ func TestBasicNECLFileParser(t *testing.T) {
 	assert.EqualValues(t, "this is a blocked multiline string", file.Blocks["block"].Attributes["block_multiline"].Value)
 }
 
+func TestFunctions(t *testing.T) {
+	file, err := ParseNECLFile("./test_data/example-3-test-functions.necl")
+	assert.NoError(t, err)
+
+	// String functions
+	assert.EqualValues(t, "UPPERCASE THIS STRING", file.Attributes["testStringUpper"].Value)
+	assert.EqualValues(t, "lowercase this string", file.Attributes["testStringLower"].Value)
+	assert.EqualValues(t, "string1 string2", file.Attributes["testStringConcat"].Value)
+	assert.EqualValues(t, true, file.Attributes["testStringContains"].Value)
+	assert.EqualValues(t, 23, file.Attributes["testStringLength"].Value)
+
+	// Mathematical functions
+	assert.EqualValues(t, 25, file.Attributes["testMathPower"].Value)
+	assert.EqualValues(t, 8, file.Attributes["testMathFloor"].Value)
+	assert.EqualValues(t, 6, file.Attributes["testMathRemainder"].Value)
+
+	// Logic gates functions
+	assert.EqualValues(t, true, file.Attributes["testLogicAND"].Value)
+	assert.EqualValues(t, true, file.Attributes["testLogicOR"].Value)
+	assert.EqualValues(t, true, file.Attributes["testLogicNAND"].Value)
+	assert.EqualValues(t, false, file.Attributes["testLogicNOR"].Value)
+	assert.EqualValues(t, false, file.Attributes["testLogicXOR"].Value)
+	assert.EqualValues(t, true, file.Attributes["testLogicXNOR"].Value)
+}
+
 func TestK8sNECLFileParser(t *testing.T) {
 	file, err := ParseNECLFile("./test_data/example-2-kubernetes-deployment.necl")
 	assert.NoError(t, err)
