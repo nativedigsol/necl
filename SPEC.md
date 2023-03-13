@@ -46,6 +46,8 @@ block {
 }
 ```
 
+Note: Blocks **MUST** have a name assigned to it
+
 ## Data Types
 
 NECL supports the common data types:
