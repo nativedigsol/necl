@@ -8,7 +8,7 @@ import (
 )
 
 // findBlock looks for a block by searching for the beggining '{' and the closing '}'
-func findBlock(data []string, startLine int) (Block, int, []int, int, []int, error) {
+func findBlock(data []string, startLine int, currentAttributes map[string]Attribute) (Block, int, []int, int, []int, error) {
 	var start int
 	var end int
 
@@ -36,7 +36,7 @@ func findBlock(data []string, startLine int) (Block, int, []int, int, []int, err
 				if !nested {
 					// This is not the prettiest of stuff and it could definitely see an improvement
 					// but for now, it works
-					newNestedBlock, start, starts, end, ends, err := findBlock(data, i)
+					newNestedBlock, start, starts, end, ends, err := findBlock(data, i, currentAttributes)
 					if err != nil {
 						return Block{}, 0, nil, 0, nil, err
 					}
@@ -77,7 +77,7 @@ func findBlock(data []string, startLine int) (Block, int, []int, int, []int, err
 		blockName := strings.TrimSpace(blockNameRaw[:len(blockNameRaw)-1])
 
 		// Get block attributes (if any)
-		blockAttributes, err := findAttributes(data[start:end])
+		blockAttributes, err := findAttributes(data[start:end], currentAttributes)
 		if err != nil {
 			return Block{}, 0, nil, 0, nil, err
 		}
@@ -220,11 +220,17 @@ func ParseNECLFile(filename string) (*File, error) {
 		}
 	}
 
+	// Find attributes that are not inside blocks
+	attributes, err := findAttributesNoBlock(rawText)
+	if err != nil {
+		return nil, err
+	}
+
 	// Find blocks
 	blocks := make(map[string]Block)
 	startLine := 0
 	for startLine < len(rawText) {
-		newBlock, _, _, endLine, _, err := findBlock(rawText, startLine)
+		newBlock, _, _, endLine, _, err := findBlock(rawText, startLine, attributes)
 		if err != nil {
 			return nil, err
 		}
@@ -239,12 +245,6 @@ func ParseNECLFile(filename string) (*File, error) {
 		} else {
 			startLine = endLine - 1
 		}
-	}
-
-	// Find attributes that are not inside blocks
-	attributes, err := findAttributesNoBlock(rawText)
-	if err != nil {
-		return nil, err
 	}
 
 	return &File{

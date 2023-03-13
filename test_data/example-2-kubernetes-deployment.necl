@@ -1,22 +1,23 @@
+globalAppName = "nginx"
 apiVersion = "apps/v1"
 kind = "Deployment"
 metadata {
     name = "nginx-deployment"
     labels {
-        app = "nginx"
+        app = globalAppName
     }
 }
 spec {
     replicas = 3
     selector {
         matchLabels {
-            app = "nginx"
+            app = globalAppName
         }
     }
     template {
         metadata {
             labels {
-                app = "nginx"
+                app = globalAppName
             }
         }
         spec {

@@ -8,58 +8,62 @@ import (
 )
 
 // Discover the type of an attribute based on the NECL spec
-func discoverAttributeType(value string) (string, error) {
+func discoverAttributeType(value string) string {
 	// String
 	// Multiline strings are not checked here, it is checked by findAttribute beforehand and "compiled" by getMultilineString
 	if (strings.HasPrefix(value, `'`) && strings.HasSuffix(value, `'`)) || (strings.HasPrefix(value, `"`) && strings.HasSuffix(value, `"`)) {
-		return "string", nil
+		return "string"
 	}
 
 	// Array
 	if strings.HasPrefix(value, `[`) && strings.HasSuffix(value, `]`) {
-		return "array", nil
+		return "array"
+	}
+
+	// Expression
+	if strings.HasPrefix(value, "if") || strings.HasPrefix(value, "for") {
+		return "expression"
 	}
 
 	// Comparison (will transform into a boolean by the end)
 	if ContainsMany(value, []string{"==", "!=", "<", "<=", ">", ">="}) {
-		return "comparison", nil
+		return "comparison"
 	}
 
 	// Arithmetic operation
 	if ContainsMany(value, []string{"+", "-", "*", "/"}) {
-		return "arithmetic", nil
+		return "arithmetic"
 	}
 
 	// Functions
 	// String functions
 	if ContainsMany(value, []string{"upper(", "lower(", "concat(", "contains(", "length("}) {
-		return "func-string", nil
+		return "func-string"
 	}
 
 	// Mathematical functions
 	if ContainsMany(value, []string{"power(", "floor(", "remainder("}) {
-		return "func-math", nil
+		return "func-math"
 	}
 
 	// Logical functions
 	if ContainsMany(value, []string{"and(", "or(", "nand(", "nor(", "xor(", "xnor("}) {
-		return "func-logic", nil
+		return "func-logic"
 	}
 
 	// Boolean
 	if strings.Contains(strings.ToLower(value), "true") || strings.Contains(strings.ToLower(value), "false") {
-		return "boolean", nil
+		return "boolean"
 	}
 
 	// Number
 	_, err := strconv.ParseFloat(value, 32)
 	if err == nil {
-		return "number", nil
+		return "number"
 	}
 
 	// No valid type was found
-	err = fmt.Errorf("no valid type was found for attribute %s", value)
-	return "", err
+	return "unknown"
 }
 
 // getMultilineString looks if a certain line is an multiline string
@@ -96,11 +100,9 @@ func getAttribute(attributeValueRaw string, isArray bool, currentAttributes map[
 	var attributeValue interface{}
 	var arrayElements []interface{}
 
-	attributeType, err := discoverAttributeType(attributeValueRaw)
-	if err != nil {
-		return "", nil, nil, err
-	}
+	attributeType := discoverAttributeType(attributeValueRaw)
 
+	var err error
 	switch attributeType {
 	case "string":
 		attributeValue = attributeValueRaw[1 : len(attributeValueRaw)-1]
@@ -135,7 +137,7 @@ func getAttribute(attributeValueRaw string, isArray bool, currentAttributes map[
 		}
 	case "func-string":
 		var functionDone string
-		functionDone, attributeValue, err = StringFunctions(attributeValueRaw)
+		functionDone, attributeValue, err = StringFunctions(attributeValueRaw, currentAttributes)
 		if err != nil {
 			return "", nil, nil, err
 		}
@@ -148,7 +150,7 @@ func getAttribute(attributeValueRaw string, isArray bool, currentAttributes map[
 		}
 	case "func-math":
 		attributeType = "number"
-		attributeValue, err = MathFunctions(attributeValueRaw)
+		attributeValue, err = MathFunctions(attributeValueRaw, currentAttributes)
 		if err != nil {
 			return "", nil, nil, err
 		}
@@ -169,9 +171,19 @@ func getAttribute(attributeValueRaw string, isArray bool, currentAttributes map[
 				return "", nil, nil, err
 			}
 		}
+	case "expression":
+		attributeType, attributeValue, err = ParseExpression(attributeValueRaw, currentAttributes)
+		if err != nil {
+			return "", nil, nil, err
+		}
 	default:
-		err := fmt.Errorf("unknown attribute type: %s", attributeType)
-		return "", nil, nil, err
+		// Check if this attribute is referencing another one
+		if currentAttributes[attributeValueRaw].Value == nil {
+			err := fmt.Errorf("unknown type for attribute: %s", attributeValueRaw)
+			return "", nil, nil, err
+		}
+		attributeType = currentAttributes[attributeValueRaw].Type
+		attributeValue = currentAttributes[attributeValueRaw].Value
 	}
 
 	return attributeType, attributeValue, arrayElements, nil
@@ -332,8 +344,8 @@ func findAttribute(data []string, line int, currentAttributes map[string]Attribu
 }
 
 // findAttributesInsideBlock looks for attributes definitions in a block
-func findAttributes(data []string) (map[string]Attribute, error) {
-	attributes := make(map[string]Attribute)
+func findAttributes(data []string, currentAttributes map[string]Attribute) (map[string]Attribute, error) {
+	attributes := currentAttributes
 
 	for i := range data {
 		found, newAttr, err := findAttribute(data, i, attributes)
