@@ -7,17 +7,43 @@ import (
 )
 
 // findBlock looks for a block by searching for the beggining '{' and the closing '}'
-func findBlock(data []string, startLine int) (Block, int) {
+func findBlock(data []string, startLine int) (Block, int, []int, int, []int) {
 	var start int
 	var end int
 
 	// Declare this as false since blocks can have nested blocks
 	blockStarted := false
 
+	// Nested blocks
+	nestedBlocks := make(map[string]Block)
+	nestedBlockStarts := []int{}
+	nestedBlockEnds := []int{}
+
 	// Try to find where the block starts and where it ends
 	for i, line := range data {
 		// Only start looking when the first byte index is reached
 		if i >= startLine {
+			// Nested block
+			if strings.Contains(line, "{") && blockStarted {
+				// Check if block is nested from another block
+				nested := false
+				for _, val := range nestedBlockStarts {
+					if i == val {
+						nested = true
+					}
+				}
+				if !nested {
+					// This is not the prettiest of stuff and it could definitely see an improvement
+					// but for now, it works
+					newNestedBlock, start, starts, end, ends := findBlock(data, i)
+					nestedBlockStarts = append(nestedBlockStarts, start)
+					nestedBlockStarts = append(nestedBlockStarts, starts...)
+					nestedBlockEnds = append(nestedBlockEnds, end)
+					nestedBlockEnds = append(nestedBlockEnds, ends...)
+					nestedBlocks[newNestedBlock.Name] = newNestedBlock
+				}
+			}
+
 			// Look for the start of the block
 			if strings.Contains(line, "{") && !blockStarted {
 				start = i
@@ -26,7 +52,16 @@ func findBlock(data []string, startLine int) (Block, int) {
 
 			// Look for the end of the block
 			if strings.Contains(line, "}") && blockStarted {
-				end = i
+				nested := false
+				for _, val := range nestedBlockEnds {
+					if i == val {
+						nested = true
+					}
+				}
+				if !nested {
+					end = i
+					break
+				}
 			}
 		}
 	}
@@ -44,13 +79,13 @@ func findBlock(data []string, startLine int) (Block, int) {
 		// Knowing where the block starts and ends, a Block struct can be created
 		return Block{
 			Name:       blockName,
-			RawText:    data[start:end],
 			Attributes: blockAttributes,
-		}, end
+			Blocks:     nestedBlocks,
+		}, start, nestedBlockStarts, end, nestedBlockEnds
 	}
 
 	// No block was found
-	return Block{}, 0
+	return Block{}, 0, []int{}, 0, []int{}
 }
 
 // findAttributesNoBlock looks for attributes that are outside blocks
@@ -118,8 +153,19 @@ func ParseNECLFile(filename string) *File {
 
 	// Remove all comments from the text
 	for i, line := range rawText {
+		// Break if last line was reached
+		// This is needed because this loop should run for the entire length of the text
+		// But if comments are being removed, the length of the text is going to be dinamically reduced
+		// This is set so no index out of bound errors happen
+		if i > len(rawText) {
+			break
+		}
 		if strings.HasPrefix(strings.TrimSpace(line), "//") {
-			rawText = append(rawText[:i], rawText[i+1:]...)
+			if i == len(rawText)-1 {
+				rawText = rawText[:i-1]
+			} else {
+				rawText = append(rawText[:i], rawText[i+1:]...)
+			}
 		}
 	}
 
@@ -127,7 +173,7 @@ func ParseNECLFile(filename string) *File {
 	blocks := make(map[string]Block)
 	startLine := 0
 	for startLine < len(rawText) {
-		newBlock, endLine := findBlock(rawText, startLine)
+		newBlock, _, _, endLine, _ := findBlock(rawText, startLine)
 		if newBlock.Name != "" {
 			// Add new block to the array of blocks
 			blocks[newBlock.Name] = newBlock
@@ -136,7 +182,7 @@ func ParseNECLFile(filename string) *File {
 		if endLine == 0 {
 			startLine += 1
 		} else {
-			startLine = endLine
+			startLine = endLine - 1
 		}
 	}
 
@@ -147,6 +193,5 @@ func ParseNECLFile(filename string) *File {
 	return &File{
 		Attributes: attributes,
 		Blocks:     blocks,
-		RawText:    rawText,
 	}
 }
