@@ -7,7 +7,7 @@ import (
 )
 
 func TestBasicNECLFileParser(t *testing.T) {
-	file, err := ParseNECLFile("./test_data/example-1-simple-file.necl")
+	file, err := ParseNECLFile("./test_data/example-1-test-file.necl")
 	assert.NoError(t, err)
 
 	// Assert no-block attributes
@@ -27,12 +27,14 @@ func TestBasicNECLFileParser(t *testing.T) {
 	assert.EqualValues(t, compArray, file.Attributes["comp_array"].Array)
 
 	// Assert arithmetic operations
+	opArray := []interface{}{"this", "array", "can", "calculate", "stuff", 5}
 	assert.EqualValues(t, 2, file.Attributes["sum"].Value)
 	assert.EqualValues(t, 3, file.Attributes["subtract"].Value)
 	assert.EqualValues(t, 25, file.Attributes["multiply"].Value)
 	assert.EqualValues(t, 10, file.Attributes["divide"].Value)
 	assert.EqualValues(t, 4, file.Attributes["attOp1"].Value)
 	assert.EqualValues(t, 8, file.Attributes["attOp2"].Value)
+	assert.EqualValues(t, opArray, file.Attributes["op_array"].Array)
 
 	// Assert block attributes
 	assert.EqualValues(t, "bar", file.Blocks["block"].Attributes["foo"].Value)
