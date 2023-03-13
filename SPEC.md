@@ -140,27 +140,6 @@ a > b     // greater than
 a >= b    // greater than or equal to
 ```
 
-### Binary operators
-
-We can easily build logic gates by combining operators
-
-```
-cond1 = true
-cond2 = false
-
-// Conjunction
-and = cond1 == cond2 // false
-or = if (cond1 == true || cond2 == true) ? true : false // true
-
-// Denial
-nand = !and // true
-nor = !nor // false
-
-// Exclusive
-xor = if (cond1 == cond2) ? false : true // true
-xnor = !xor // false
-```
-
 ### Functions
 
 The following functions come by default with the NECL interpreter:
