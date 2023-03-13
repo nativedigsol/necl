@@ -8,7 +8,7 @@ import (
 )
 
 // Gets elements required for a string function
-func getValuesForStringFunc(targetsRaw string) ([]string, error) {
+func getValuesForStringFunc(targetsRaw string, attributes map[string]Attribute) ([]string, error) {
 	var targets []string
 	previousComma := 0
 	for commaIndex, findComma := range targetsRaw {
@@ -31,23 +31,33 @@ func getValuesForStringFunc(targetsRaw string) ([]string, error) {
 		return nil, err
 	}
 
-	// Remove quote sign from elements
-	if strings.HasPrefix(targets[0], `"`) {
-		targets[0] = strings.Trim(targets[0], `"`)
-	} else if strings.HasPrefix(targets[0], `'`) {
-		targets[0] = strings.Trim(targets[0], `'`)
-	}
-	if strings.HasPrefix(targets[1], `"`) {
-		targets[1] = strings.Trim(targets[1], `"`)
-	} else if strings.HasPrefix(targets[1], `'`) {
-		targets[1] = strings.Trim(targets[1], `'`)
+	// Search for attributes and transform into string
+	var targetsString []string
+	for _, val := range targets {
+		var stringVal string
+		stringVal = string(val)
+
+		// Search for attribute with name
+		if attributes[val].Value != nil {
+			// Confirm attribute is a string
+			if attributes[val].Type != "string" {
+				err := fmt.Errorf("string functions can only have string attributes as parameters: %s", val)
+				return nil, err
+			}
+			stringVal = attributes[val].Value.(string)
+		} else {
+			stringVal = stringVal[1 : len(stringVal)-1]
+		}
+
+		// Remove quote if not attribute
+		targetsString = append(targetsString, stringVal)
 	}
 
-	return targets, nil
+	return targetsString, nil
 }
 
 // StringFunctions is a super set of all string functions
-func StringFunctions(line string) (string, interface{}, error) {
+func StringFunctions(line string, attributes map[string]Attribute) (string, interface{}, error) {
 	// Upper
 	if strings.Contains(line, "upper(") {
 		// Get func value
@@ -80,7 +90,7 @@ func StringFunctions(line string) (string, interface{}, error) {
 		targetsRaw := strings.TrimSpace(line[7 : len(line)-1])
 
 		// Get values
-		targets, err := getValuesForStringFunc(targetsRaw)
+		targets, err := getValuesForStringFunc(targetsRaw, attributes)
 		if err != nil {
 			return "concat", "", err
 		}
@@ -95,11 +105,10 @@ func StringFunctions(line string) (string, interface{}, error) {
 		targetsRaw := strings.TrimSpace(line[9 : len(line)-1])
 
 		// Get values
-		targets, err := getValuesForStringFunc(targetsRaw)
+		targets, err := getValuesForStringFunc(targetsRaw, attributes)
 		if err != nil {
 			return "contains", "", err
 		}
-
 		// Perform the operation
 		return "contains", strings.Contains(targets[0], targets[1]), nil
 	}
@@ -122,7 +131,7 @@ func StringFunctions(line string) (string, interface{}, error) {
 }
 
 // Gets elements required for a mathematical function
-func getValuesForMathFunc(targetsRaw string) ([]int, error) {
+func getValuesForMathFunc(targetsRaw string, attributes map[string]Attribute) ([]int, error) {
 	var targets []string
 	previousComma := 0
 	for commaIndex, findComma := range targetsRaw {
@@ -145,28 +154,42 @@ func getValuesForMathFunc(targetsRaw string) ([]int, error) {
 		return nil, err
 	}
 
-	// Transform string to int
-	target0, err := strconv.Atoi(targets[0])
-	if err != nil {
-		return nil, err
-	}
-	target1, err := strconv.Atoi(targets[1])
-	if err != nil {
-		return nil, err
+	// Search for attributes and transform into int
+	var targetsInt []int
+	for _, val := range targets {
+		var intVal int
+		intVal, err := strconv.Atoi(val)
+		if err != nil {
+			// Search for attribute with name
+			if attributes[val].Value == nil {
+				err := fmt.Errorf("no attribute named %s was found", val)
+				return nil, err
+			}
+
+			// Confirm attribute is a number
+			if attributes[val].Type != "number" {
+				err := fmt.Errorf("mathematical functions can only have number attributes as parameters: %s", val)
+				return nil, err
+			}
+
+			intVal = attributes[val].Value.(int)
+		}
+
+		targetsInt = append(targetsInt, intVal)
 	}
 
-	return []int{target0, target1}, nil
+	return targetsInt, nil
 }
 
 // MathFunctions is a super set of all mathematical functions
-func MathFunctions(line string) (interface{}, error) {
+func MathFunctions(line string, attributes map[string]Attribute) (interface{}, error) {
 	// Power
 	if strings.Contains(line, "power(") {
 		// Get func value
 		targetsRaw := strings.TrimSpace(line[6 : len(line)-1])
 
 		// Get targets
-		targets, err := getValuesForMathFunc(targetsRaw)
+		targets, err := getValuesForMathFunc(targetsRaw, attributes)
 		if err != nil {
 			return nil, err
 		}
@@ -180,7 +203,7 @@ func MathFunctions(line string) (interface{}, error) {
 		targetsRaw := strings.TrimSpace(line[6 : len(line)-1])
 
 		// Get targets
-		targets, err := getValuesForMathFunc(targetsRaw)
+		targets, err := getValuesForMathFunc(targetsRaw, attributes)
 		if err != nil {
 			return nil, err
 		}
@@ -194,7 +217,7 @@ func MathFunctions(line string) (interface{}, error) {
 		targetsRaw := strings.TrimSpace(line[10 : len(line)-1])
 
 		// Get targets
-		targets, err := getValuesForMathFunc(targetsRaw)
+		targets, err := getValuesForMathFunc(targetsRaw, attributes)
 		if err != nil {
 			return nil, err
 		}
