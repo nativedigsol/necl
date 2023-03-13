@@ -39,11 +39,6 @@ func getValuesForStringFunc(targetsRaw string, attributes map[string]Attribute) 
 
 		// Search for attribute with name
 		if attributes[val].Value != nil {
-			// Confirm attribute is a string
-			if attributes[val].Type != "string" {
-				err := fmt.Errorf("string functions can only have string attributes as parameters: %s", val)
-				return nil, err
-			}
 			stringVal = attributes[val].Value.(string)
 		} else {
 			stringVal = stringVal[1 : len(stringVal)-1]
@@ -63,9 +58,12 @@ func StringFunctions(line string, attributes map[string]Attribute) (string, inte
 		// Get func value
 		target := strings.TrimSpace(line[6 : len(line)-1])
 
-		// Remove quote signs
-		target = strings.Trim(target, `"`)
-		target = strings.Trim(target, `'`)
+		// Search for attribute with name
+		if attributes[target].Value != nil {
+			target = attributes[target].Value.(string)
+		} else {
+			target = target[1 : len(target)-1]
+		}
 
 		// Perform operation
 		return "upper", strings.ToUpper(target), nil
@@ -76,9 +74,12 @@ func StringFunctions(line string, attributes map[string]Attribute) (string, inte
 		// Get func value
 		target := strings.TrimSpace(line[6 : len(line)-1])
 
-		// Remove quote signs
-		target = strings.Trim(target, `"`)
-		target = strings.Trim(target, `'`)
+		// Search for attribute with name
+		if attributes[target].Value != nil {
+			target = attributes[target].Value.(string)
+		} else {
+			target = target[1 : len(target)-1]
+		}
 
 		// Perform operation
 		return "lower", strings.ToLower(target), nil
@@ -118,9 +119,12 @@ func StringFunctions(line string, attributes map[string]Attribute) (string, inte
 		// Get func value
 		target := strings.TrimSpace(line[7 : len(line)-1])
 
-		// Remove quote signs
-		target = strings.Trim(target, `"`)
-		target = strings.Trim(target, `'`)
+		// Search for attribute with name
+		if attributes[target].Value != nil {
+			target = attributes[target].Value.(string)
+		} else {
+			target = target[1 : len(target)-1]
+		}
 
 		// Perform operation
 		return "length", len(target), nil
@@ -165,13 +169,6 @@ func getValuesForMathFunc(targetsRaw string, attributes map[string]Attribute) ([
 				err := fmt.Errorf("no attribute named %s was found", val)
 				return nil, err
 			}
-
-			// Confirm attribute is a number
-			if attributes[val].Type != "number" {
-				err := fmt.Errorf("mathematical functions can only have number attributes as parameters: %s", val)
-				return nil, err
-			}
-
 			intVal = attributes[val].Value.(int)
 		}
 
@@ -264,13 +261,6 @@ func getValuesForLogicFunc(targetsRaw string, attributes map[string]Attribute) (
 				err := fmt.Errorf("no attribute named %s was found", val)
 				return nil, err
 			}
-
-			// Confirm attribute is a boolean
-			if attributes[val].Type != "boolean" {
-				err := fmt.Errorf("logical functions can only have boolean attributes as parameters: %s", val)
-				return nil, err
-			}
-
 			boolVal = attributes[val].Value.(bool)
 		}
 
