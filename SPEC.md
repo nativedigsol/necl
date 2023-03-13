@@ -72,12 +72,12 @@ multiline = "line1" \
 
 A "if" is a conditional construct to make an attribute based on a condition, applying it's value by using the `?` and `:` operators.
 
+If conditions can return all kinds of attribute types.
+
 ```
 msg = "Hello World!"
-has_hello = if contains(msg, "hello") ? true : false
-has_hi = if contains(msg, "hi") ? true : false
-// has_hello = true
-// has_hi = false
+has_hello = if contains(msg, "hello") ? true : false // True
+has_hi = if contains(msg, "hi") ? true : false // False
 
 // Note:
 // This is only an example, in this case it would make more sense to simply do

@@ -75,6 +75,29 @@ func TestFunctions(t *testing.T) {
 	assert.EqualValues(t, true, file.Attributes["testLogicXNOR"].Value)
 }
 
+func TestConditions(t *testing.T) {
+	file, err := ParseNECLFile("./test_data/example-4-test-expressions.necl")
+	assert.NoError(t, err)
+
+	// If
+	assert.EqualValues(t, true, file.Attributes["testIfBool1"].Value)
+	assert.EqualValues(t, false, file.Attributes["testIfBool2"].Value)
+	assert.EqualValues(t, false, file.Attributes["testIfComp1"].Value)
+	assert.EqualValues(t, false, file.Attributes["testIfComp2"].Value)
+	assert.EqualValues(t, "false", file.Attributes["testIfComp3"].Value)
+	assert.EqualValues(t, "true", file.Attributes["testIfComp4"].Value)
+	assert.EqualValues(t, false, file.Attributes["testIfComp5"].Value)
+	assert.EqualValues(t, "yes", file.Attributes["testIfComp6"].Value)
+	assert.EqualValues(t, 10, file.Attributes["testIfFunc1"].Value)
+	assert.EqualValues(t, 20, file.Attributes["testIfFunc2"].Value)
+	assert.EqualValues(t, "false", file.Attributes["textIfGateAND"].Value)
+	assert.EqualValues(t, "true", file.Attributes["textIfGateOR"].Value)
+	assert.EqualValues(t, "false", file.Attributes["textIfGateNAND"].Value)
+	assert.EqualValues(t, "true", file.Attributes["textIfGateNOR"].Value)
+	assert.EqualValues(t, "false", file.Attributes["textIfGateXOR"].Value)
+	assert.EqualValues(t, "true", file.Attributes["textIfGateXNOR"].Value)
+}
+
 func TestK8sNECLFileParser(t *testing.T) {
 	file, err := ParseNECLFile("./test_data/example-2-kubernetes-deployment.necl")
 	assert.NoError(t, err)

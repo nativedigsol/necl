@@ -1,0 +1,27 @@
+// If
+// Boolean
+b1 = false
+b2 = true
+testIfBool1 = if true ? true : false
+testIfBool2 = if b1 ? true : false
+
+// Comparison: "==", "!=", "<", "<=", ">", ">="
+testIfComp1 = if 1 == 2 ? true : false
+testIfComp2 = if 10 != 10 ? true : false
+testIfComp3 = if 10 < 5 ? "true" : "false"
+testIfComp4 = if 23 >= 23 ? "true" : "false"
+testIfComp5 = if 69 > 420 ? true : false
+testIfComp6 = if 10 >= 10 ? "yes" : "no"
+
+// string func contains()
+text = "Hello, World!"
+testIfFunc1 = if contains(text, "Hello") ? 10 : 20
+testIfFunc2 = if contains(text, "hi") ? 10 : 20
+
+// AND, OR, NAND, NOR, XOR, XNOR
+textIfGateAND = if and(b1, b2) ? "true" : "false"
+textIfGateOR = if or(true, false) ? "true" : "false"
+textIfGateNAND = if nand(b2, true) ? "true" : "false"
+textIfGateNOR = if nor(false, b1) ? "true" : "false"
+textIfGateXOR = if xor(false, false) ? "true" : "false"
+textIfGateXNOR = if xnor(false, false) ? "true" : "false"
