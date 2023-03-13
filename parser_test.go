@@ -21,8 +21,10 @@ func TestBasicNECLFileParser(t *testing.T) {
 
 	// Assert array values
 	longArray := []interface{}{"a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, true, false}
+	multilineArray := []interface{}{"this", "is", "a", "multiline", "array", 1, false}
 	assert.EqualValues(t, []interface{}{"test", 1}, file.Attributes["test_array"].Array)
 	assert.EqualValues(t, []interface{}{"test", "block", "array", 1234, false}, file.Blocks["block"].Attributes["block_array"].Array)
+	assert.EqualValues(t, multilineArray, file.Attributes["multiArray"].Array)
 	assert.EqualValues(t, longArray, file.Attributes["long_array"].Array)
 	assert.EqualValues(t, "this is a blocked multiline string", file.Blocks["block"].Attributes["block_multiline"].Value)
 }

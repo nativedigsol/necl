@@ -108,7 +108,11 @@ func getAttribute(attributeValueRaw string, isArray bool) (string, interface{}, 
 // parseArrayAttributes parse all attributes in an array
 func parseArrayAttributes(array string) ([]interface{}, error) {
 	// Remove array "[]"
-	arrayRaw := strings.TrimSpace(array[1 : len(array)-1])
+	// The "if" is there so it doesn't remove actual values of a multiline array
+	arrayRaw := array
+	if strings.HasPrefix(strings.TrimSpace(arrayRaw), "[") && strings.HasSuffix(strings.TrimSpace(arrayRaw), "]") {
+		arrayRaw = strings.TrimSpace(array[1 : len(array)-1])
+	}
 
 	// Find all elements
 	// Elements are separated by a comma ","
@@ -147,6 +151,59 @@ func parseArrayAttributes(array string) ([]interface{}, error) {
 	return arrayElements, nil
 }
 
+// isMultilineArray checks if a certain attribute is a multiline array
+func isMultilineArray(data []string, startLine int) bool {
+	// Check if is attribute
+	if !strings.Contains(data[startLine], "=") {
+		return false
+	}
+
+	// Remove attribute name
+	i := strings.Index(data[startLine], "=")
+	rawAttribute := strings.TrimSpace(data[startLine][i+1:])
+
+	// Check if it's a multiline array
+	if strings.HasPrefix(rawAttribute, `[`) && !strings.HasSuffix(rawAttribute, `]`) {
+		return true
+	}
+
+	return false
+}
+
+// getMultilineArray parse all attributes in an multiline array
+func getMultilineArray(data []string, startLine int) ([]interface{}, error) {
+	// Loop through data to find the end of the array and all the elements
+	arrayElementsRaw := []string{}
+	endOfArray := false
+	for i, line := range data {
+		if i >= startLine && !endOfArray {
+			// Check end of array
+			if strings.Contains(strings.TrimSpace(line), "]") {
+				endOfArray = true
+			}
+
+			// First line of the array, need to remove the attribute name
+			if i == startLine {
+				j := strings.Index(data[startLine], "=")
+				line = strings.TrimSpace(data[startLine][j+1:])
+			}
+
+			// Add all elements of the multiline array to a simple string
+			arrayElementsRaw = append(arrayElementsRaw, strings.TrimSpace(line))
+		}
+	}
+	// Transform the array of elements into a string
+	stringElements := strings.Join(arrayElementsRaw, " ")
+
+	// Parse elements of the array
+	arrayElements, err := parseArrayAttributes(stringElements)
+	if err != nil {
+		return nil, err
+	}
+
+	return arrayElements, nil
+}
+
 // findAttribute looks for an attribute in a single line
 func findAttribute(data []string, line int) (bool, Attribute, error) {
 	// Look for '='
@@ -176,13 +233,18 @@ func findAttribute(data []string, line int) (bool, Attribute, error) {
 	var attributeValue interface{}
 	var attributeType string
 	arrayValues := []interface{}{}
+	var err error
 
 	// If attribute is a multiline string, get the full string
 	if strings.HasSuffix(rawAttribute, `\`) {
 		attributeValue = getMultilineString(data, line)
 		attributeType = "string"
+	} else if isMultilineArray(data, line) { // Multiline array
+		arrayValues, err = getMultilineArray(data, line)
+		if err != nil {
+			return false, Attribute{}, err
+		}
 	} else {
-		var err error
 		attributeType, attributeValue, arrayValues, err = getAttribute(rawAttribute, false)
 		if err != nil {
 			return false, Attribute{}, err

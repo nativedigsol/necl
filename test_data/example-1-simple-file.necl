@@ -12,6 +12,15 @@ multiline = "this" \
       // "This is a comment intended to check for errors on multiline strings" \
       "string"
 
+multiArray = ["this",
+              "is",
+              "a",
+              "multiline",
+              "array",
+              1,
+              false
+]
+
 block {
     foo = "bar"
     block_array = ["test", "block", "array", 1234, false]
