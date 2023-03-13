@@ -26,7 +26,7 @@ The following character sequences represent operators, delimiters, and other spe
 -   }   !=  >   ||  
 *   [   =   <=  !
 /   ]   :   >=  (
-%   ${  ?       )
+%   ${  ?   \   )
 ```
 
 ## Structural elements
@@ -52,6 +52,13 @@ NECL supports the common data types:
 
 - Number (assigned integers and floats): `number = 3.14` or `number = -10`
 - String (a collection of characters): `string = "Hello World!`
+- Multiline string (a collection of lines): 
+```
+multiline = "line1" \
+              "line2" \
+              "lineN" \
+              "final line"
+```
 - Boolean (true of false values): `bool = false` or `bool = true`
 - Array (collection of data) = `array = ["foo", "bar", 2023, false]`
 

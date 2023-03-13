@@ -62,14 +62,14 @@ func findAttributesNoBlock(data []string) (map[string]Attribute, error) {
 	attributes := make(map[string]Attribute)
 
 	// Try to find if there's any block
-	for _, line := range data {
+	for i, line := range data {
 		// Look for the start of a block
 		if strings.Contains(line, "{") && !blockStarted {
 			blockStarted = true
 		}
 
 		// If not inside a block, look for attributes
-		found, newAttr, err := findAttribute(line)
+		found, newAttr, err := findAttribute(data, i)
 		Check(err)
 		if found && (newAttr.Name != "") {
 			attributes[newAttr.Name] = Attribute{

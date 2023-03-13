@@ -10,13 +10,8 @@ import (
 // Discover the type of an attribute based on the NECL spec
 func discoverAttributeType(value string) (string, error) {
 	// String
-	// One quote
-	if strings.HasPrefix(value, `'`) && strings.HasSuffix(value, `'`) {
-		return "string", nil
-	}
-
-	// Double quote
-	if strings.HasPrefix(value, `"`) && strings.HasSuffix(value, `"`) {
+	// Multiline strings are not checked here, it is checked by findAttribute beforehand and "compiled" by getMultilineString
+	if (strings.HasPrefix(value, `'`) && strings.HasSuffix(value, `'`)) || (strings.HasPrefix(value, `"`) && strings.HasSuffix(value, `"`)) {
 		return "string", nil
 	}
 
@@ -39,6 +34,35 @@ func discoverAttributeType(value string) (string, error) {
 	// No valid type was found
 	err = errors.New("no valid type was found")
 	return "", err
+}
+
+// getMultilineString looks if a certain line is an multiline string
+func getMultilineString(data []string, startLine int) interface{} {
+	// Get all lines of the multistring
+	var stringLines []string
+	for i, line := range data {
+		if i >= startLine {
+			// First line, so need to remove the variable name
+			if i == startLine {
+				j := strings.Index(line, "=")
+				line = strings.TrimSpace(line[j+1:])
+			}
+
+			// Add lines to the array (already trimmed)
+			removeBackslash := strings.TrimSuffix(strings.TrimSpace(line), `\`)
+			removeWhitespace := (strings.TrimSpace(removeBackslash))
+			newLine := removeWhitespace[1 : len(removeWhitespace)-1]
+			stringLines = append(stringLines, newLine)
+
+			// If the line doesn't have a `\`, it means that it is the last line of the multiline string
+			if !strings.HasSuffix(strings.TrimSpace(line), `\`) {
+				break
+			}
+		}
+	}
+
+	// join the stringLines
+	return strings.Join(stringLines, " ")
 }
 
 // getAttribute transforms a string in a interface{} with the correct type
@@ -118,22 +142,22 @@ func parseArrayAttributes(array string) ([]interface{}, error) {
 }
 
 // findAttribute looks for an attribute in a single line
-func findAttribute(line string) (bool, Attribute, error) {
+func findAttribute(data []string, line int) (bool, Attribute, error) {
 	// Look for '='
-	if !strings.Contains(line, "=") {
+	if !strings.Contains(data[line], "=") {
 		return false, Attribute{}, nil
 	}
 
 	// Ignore if line is a comment
-	if strings.HasPrefix(line, "//") {
+	if strings.HasPrefix(data[line], "//") {
 		return false, Attribute{}, nil
 	}
 
 	// Find position of the '='
-	i := strings.Index(line, "=")
+	i := strings.Index(data[line], "=")
 
 	// Get attribute name
-	attributeName := strings.TrimSpace(line[:i])
+	attributeName := strings.TrimSpace(data[line][:i])
 
 	// Name cannot be empty
 	if attributeName == "" {
@@ -147,9 +171,20 @@ func findAttribute(line string) (bool, Attribute, error) {
 	}
 
 	// Discover attribute value
-	rawAttribute := strings.TrimSpace(line[i+1:])
-	attributeType, attributeValue, arrayValues, err := getAttribute(rawAttribute, false)
-	Check(err)
+	rawAttribute := strings.TrimSpace(data[line][i+1:])
+	var attributeValue interface{}
+	var attributeType string
+	arrayValues := []interface{}{}
+
+	// If attribute is a multiline string, get the full string
+	if strings.HasSuffix(rawAttribute, `\`) {
+		attributeValue = getMultilineString(data, line)
+		attributeType = "string"
+	} else {
+		var err error
+		attributeType, attributeValue, arrayValues, err = getAttribute(rawAttribute, false)
+		Check(err)
+	}
 
 	return true, Attribute{
 		Name:  attributeName,
@@ -163,8 +198,8 @@ func findAttribute(line string) (bool, Attribute, error) {
 func findAttributes(data []string) (map[string]Attribute, error) {
 	attributes := make(map[string]Attribute)
 
-	for _, line := range data {
-		found, newAttr, err := findAttribute(line)
+	for i := range data {
+		found, newAttr, err := findAttribute(data, i)
 		Check(err)
 
 		if found && (newAttr.Name != "") {
