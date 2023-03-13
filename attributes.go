@@ -154,11 +154,6 @@ func findAttribute(data []string, line int) (bool, Attribute, error) {
 		return false, Attribute{}, nil
 	}
 
-	// Ignore if line is a comment
-	if strings.HasPrefix(data[line], "//") {
-		return false, Attribute{}, nil
-	}
-
 	// Find position of the '='
 	i := strings.Index(data[line], "=")
 
