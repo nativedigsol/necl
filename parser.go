@@ -116,6 +116,13 @@ func ParseNECLFile(filename string) *File {
 	// Read file
 	rawText := readFile(filename)
 
+	// Remove all comments from the text
+	for i, line := range rawText {
+		if strings.HasPrefix(strings.TrimSpace(line), "//") {
+			rawText = append(rawText[:i], rawText[i+1:]...)
+		}
+	}
+
 	// Find blocks
 	blocks := make(map[string]Block)
 	startLine := 0

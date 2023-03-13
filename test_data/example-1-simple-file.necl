@@ -9,6 +9,7 @@ multiline = "this" \
       "is" \
       "a" \
       "multiline" \
+      // "This is a comment intended to check for errors on multiline strings" \
       "string"
 
 block {
