@@ -106,12 +106,21 @@ func getAttribute(attributeValueRaw string, isArray bool, currentAttributes map[
 		attributeValue = attributeValueRaw[1 : len(attributeValueRaw)-1]
 	case "number":
 		if strings.Contains(attributeValueRaw, ".") || strings.Contains(attributeValueRaw, ",") {
-			attributeValue, _ = strconv.ParseFloat(attributeValueRaw, 32)
+			attributeValue, err = strconv.ParseFloat(attributeValueRaw, 32)
+			if err != nil {
+				return "", nil, nil, err
+			}
 		} else {
-			attributeValue, _ = strconv.Atoi(attributeValueRaw)
+			attributeValue, err = strconv.Atoi(attributeValueRaw)
+			if err != nil {
+				return "", nil, nil, err
+			}
 		}
 	case "boolean":
-		attributeValue, _ = strconv.ParseBool(attributeValueRaw)
+		attributeValue, err = strconv.ParseBool(attributeValueRaw)
+		if err != nil {
+			return "", nil, nil, err
+		}
 	case "comparison":
 		attributeType = "boolean"
 		attributeValue, err = PerformComparison(attributeValueRaw, currentAttributes)
