@@ -26,6 +26,14 @@ func TestBasicNECLFileParser(t *testing.T) {
 	assert.EqualValues(t, true, file.Attributes["c6"].Value)
 	assert.EqualValues(t, compArray, file.Attributes["comp_array"].Array)
 
+	// Assert arithmetic operations
+	assert.EqualValues(t, 2, file.Attributes["sum"].Value)
+	assert.EqualValues(t, 3, file.Attributes["subtract"].Value)
+	assert.EqualValues(t, 25, file.Attributes["multiply"].Value)
+	assert.EqualValues(t, 10, file.Attributes["divide"].Value)
+	assert.EqualValues(t, 4, file.Attributes["attOp1"].Value)
+	assert.EqualValues(t, 8, file.Attributes["attOp2"].Value)
+
 	// Assert block attributes
 	assert.EqualValues(t, "bar", file.Blocks["block"].Attributes["foo"].Value)
 	assert.EqualValues(t, false, file.Blocks["block"].Attributes["cb1"].Value)

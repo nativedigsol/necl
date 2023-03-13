@@ -13,6 +13,13 @@ c4 = 1 >= v1
 c5 = v1 < 1
 c6 = 1 <= v1
 
+sum = 1 + 1
+subtract = 23-20
+multiply = 5 * 5
+divide = 20/2
+attOp1 = v1 + 3
+attOp2 = attOp1 * 2
+
 comp_array = ["this", "array", "can", "compare", "stuff", v1 >= 0]
 
 multiline = "this" \

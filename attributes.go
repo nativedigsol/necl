@@ -30,6 +30,11 @@ func discoverAttributeType(value string) (string, error) {
 		return "comparison", nil
 	}
 
+	// Arithmetic operation
+	if ContainsMany(value, []string{"+", "-", "*", "/"}) {
+		return "arithmetic", nil
+	}
+
 	// Number
 	_, err := strconv.ParseFloat(value, 32)
 	if err == nil {
@@ -93,7 +98,13 @@ func getAttribute(attributeValueRaw string, isArray bool, currentAttributes map[
 		attributeValue, _ = strconv.ParseBool(attributeValueRaw)
 	case "comparison":
 		attributeType = "boolean"
-		attributeValue, err = performComparison(attributeValueRaw, currentAttributes)
+		attributeValue, err = PerformComparison(attributeValueRaw, currentAttributes)
+		if err != nil {
+			return "", nil, nil, err
+		}
+	case "arithmetic":
+		attributeType = "number"
+		attributeValue, err = PerformArithmeticOperation(attributeValueRaw, currentAttributes)
 		if err != nil {
 			return "", nil, nil, err
 		}

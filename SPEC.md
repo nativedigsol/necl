@@ -99,6 +99,19 @@ monthNumber = for i, month in months : i + 1
 
 Operations apply a particular operator to either one or more expression terms.
 
+There's currently a limitation to operations, you can only do one kind of operation at a time, meaning that this: `var = x + y == z` is not a valid attribute and will return errors. To do that, you currently need to attribute 2 variables:
+```
+sum = x + y
+var = sum == z
+```
+
+This happens for both arithmetic and comparative operations:
+```
+arithmetic1 = x + y // Valid
+arithmetic2 = x + y - x * k // Not valid
+both = x + y == 1 // Not valid
+```
+
 #### Arithmetic operators
 ```
 a + b   // sum 
@@ -112,7 +125,7 @@ Note 2: These operations can only be done to integers. If you try to do this ope
 
 #### Comparative operators
 
-Note that these can only be applied to integers
+Note that these can only be applied to integers and only for two values at a time (meaning `x = a == b == c` is not valid)
 
 ```
 a == b    // Equal
